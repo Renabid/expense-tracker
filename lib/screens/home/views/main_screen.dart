@@ -5,11 +5,69 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class MainScreen extends StatelessWidget {
+class MainScreen extends StatefulWidget {
   final List<Expense> expenses;
   final void Function(ThemeMode) onThemeChanged;
 
   const MainScreen(this.expenses, {required this.onThemeChanged, super.key});
+
+  @override
+  State<MainScreen> createState() => _MainScreenState();
+}
+
+class _MainScreenState extends State<MainScreen> {
+  num totalBalance = 00;
+  num totalIncome = 00;
+  num totalExpenses = 00;  // Added variable for expenses
+
+  final TextEditingController _balanceController = TextEditingController();
+  final TextEditingController _incomeController = TextEditingController();
+  final TextEditingController _expensesController = TextEditingController();  // Controller for expenses
+
+  void _showInputDialog(String title, TextEditingController controller, Function(num) onSave) {
+    controller.text = controller.text.isNotEmpty ? controller.text : '0';
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Colors.grey[200],
+          title: Text(title),
+          content: TextField(
+            controller: controller,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: Colors.grey[200],
+              border: OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Colors.black),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+              ),
+              onPressed: () {
+                final value = num.tryParse(controller.text) ?? 0;
+                onSave(value);
+                Navigator.pop(context);
+              },
+              child: const Text(
+                'Save',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,6 +78,7 @@ class MainScreen extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 25.0, vertical: 10),
         child: Column(
           children: [
+            // Profile Row
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -55,7 +114,7 @@ class MainScreen extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          "John Doe",
+                          "User",
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -75,7 +134,7 @@ class MainScreen extends StatelessWidget {
                       ),
                     );
                     if (selectedThemeMode != null) {
-                      onThemeChanged(selectedThemeMode);
+                      widget.onThemeChanged(selectedThemeMode);
                     }
                   },
                   icon: Icon(
@@ -109,8 +168,8 @@ class MainScreen extends StatelessWidget {
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Text(
+                children: [
+                  const Text(
                     'Total Balance',
                     style: TextStyle(
                       fontSize: 16,
@@ -118,89 +177,113 @@ class MainScreen extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  SizedBox(height: 12),
-                  Text(
-                    '\$ 4800.00',
-                    style: TextStyle(
-                      fontSize: 40,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
+                  const SizedBox(height: 12),
+                  GestureDetector(
+                    onTap: () => _showInputDialog(
+                      'Update Total Balance',
+                      _balanceController,
+                          (value) => setState(() => totalBalance = value),
+                    ),
+                    child: Text(
+                      '৳ $totalBalance.00',
+                      style: const TextStyle(
+                        fontSize: 40,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   Padding(
-                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Row(
-                          children: [
-                            CircleAvatar(
-                              radius: 12.5,
-                              backgroundColor: Colors.white30,
-                              child: Icon(
-                                CupertinoIcons.arrow_up,
-                                size: 12,
-                                color: Colors.greenAccent,
+                        // Income with GestureDetector
+                        GestureDetector(
+                          onTap: () => _showInputDialog(
+                            'Update Income',
+                            _incomeController,
+                                (value) => setState(() => totalIncome = value),
+                          ),
+                          child: Row(
+                            children: [
+                              const CircleAvatar(
+                                radius: 12.5,
+                                backgroundColor: Colors.white30,
+                                child: Icon(
+                                  CupertinoIcons.arrow_up,
+                                  size: 12,
+                                  color: Colors.greenAccent,
+                                ),
                               ),
-                            ),
-                            SizedBox(width: 8),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Income',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w400,
+                              const SizedBox(width: 8),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Income',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w400,
+                                    ),
                                   ),
-                                ),
-                                Text(
-                                  '€ 2500.00',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w600,
+                                  Text(
+                                    '৳ $totalIncome.00',
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ],
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                        Row(
-                          children: [
-                            CircleAvatar(
-                              radius: 12.5,
-                              backgroundColor: Colors.white30,
-                              child: Icon(
-                                CupertinoIcons.arrow_down,
-                                size: 12,
-                                color: Colors.red,
+
+                        // Expenses with GestureDetector and editable
+                        GestureDetector(
+                          onTap: () => _showInputDialog(
+                            'Update Expenses',
+                            _expensesController,
+                                (value) => setState(() => totalExpenses = value),
+                          ),
+                          child: Row(
+                            children: [
+                              const CircleAvatar(
+                                radius: 12.5,
+                                backgroundColor: Colors.white30,
+                                child: Icon(
+                                  CupertinoIcons.arrow_down,
+                                  size: 12,
+                                  color: Colors.red,
+                                ),
                               ),
-                            ),
-                            SizedBox(width: 8),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Expenses',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w400,
+                              const SizedBox(width: 8),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Expenses',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w400,
+                                    ),
                                   ),
-                                ),
-                                Text(
-                                  '€ 800.00',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w600,
+                                  Text(
+                                    '৳ $totalExpenses.00',
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ],
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -236,20 +319,20 @@ class MainScreen extends StatelessWidget {
             const SizedBox(height: 20),
             Expanded(
               child: ListView.builder(
-                itemCount: expenses.length,
+                itemCount: widget.expenses.length,
                 itemBuilder: (context, i) {
-                  final expense = expenses[i];
+                  final expense = widget.expenses[i];
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 16.0),
                     child: Container(
                       decoration: BoxDecoration(
                         color: Theme.of(context).brightness == Brightness.dark
                             ? Colors.grey[900]
-                            : Colors.white,
+                            : Colors.grey.shade200,
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.grey.shade200,
+                            color: Colors.grey.shade400,
                             blurRadius: 4,
                             offset: const Offset(2, 2),
                           ),
@@ -276,7 +359,7 @@ class MainScreen extends StatelessWidget {
                                     Image.asset(
                                       'assets/${expense.category.icon}.png',
                                       scale: 2,
-                                      color: Colors.white,
+                                      color: Colors.grey.shade200,
                                     ),
                                   ],
                                 ),
@@ -295,7 +378,7 @@ class MainScreen extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
                                 Text(
-                                  "\$${expense.amount}.00",
+                                  "৳${expense.amount}.00",
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: colorScheme.onBackground,
