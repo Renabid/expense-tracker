@@ -1,5 +1,7 @@
 import 'package:expense_repository/expense_repository.dart';
 import 'package:expense_tracker/screens/home/views/home_screen.dart';
+import 'package:expense_tracker/screens/auth/login_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'screens/home/blocs/get_expenses_bloc/get_expenses_bloc.dart';
@@ -46,9 +48,28 @@ class _MyAppViewState extends State<MyAppView> {
         ),
       ),
       themeMode: _themeMode,
-      home: BlocProvider(
-        create: (context) => GetExpensesBloc(FirebaseExpenseRepo())..add(GetExpenses()),
-        child: HomeScreen(onThemeChanged: _handleThemeChanged),
+      home: StreamBuilder<User?>(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (context, snapshot) {
+          // While checking auth state
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+
+          // User logged in & verified
+          if (snapshot.hasData && snapshot.data!.emailVerified) {
+            return BlocProvider(
+              create: (context) =>
+              GetExpensesBloc(FirebaseExpenseRepo())..add(GetExpenses()),
+              child: HomeScreen(onThemeChanged: _handleThemeChanged),
+            );
+          }
+
+          // Not logged in or email not verified
+          return const LoginScreen();
+        },
       ),
     );
   }
